@@ -26,7 +26,7 @@ import java.util.Map;
 public class MainActivity2 extends AppCompatActivity {
 
 
-    private static String token;
+    private static String token = "nada";
     private static final String LOGIN_URL = "https://api.uealecpeterson.net/public/login";
 
     @Override
@@ -34,11 +34,11 @@ public class MainActivity2 extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
 
-        // Obtén los valores del correo y la clave pasados desde la actividad principal
-        String correo = getIntent().getStringExtra("NOMBRE");
-        String clave = getIntent().getStringExtra("APELLIDO");
 
-        // Crear el objeto JSON con los parámetros de la solicitud
+        String correo = getIntent().getStringExtra("NOMBRE");
+        String clave = getIntent().getStringExtra("CLAVE");
+
+
         JSONObject params = new JSONObject();
         try {
             params.put("correo", correo);
@@ -47,18 +47,18 @@ public class MainActivity2 extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        // Crear la solicitud POST con Volley
+
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, LOGIN_URL, params,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        // Manejar la respuesta del servidor
+
                         try {
-                            // Obtener el token de la respuesta
 
 
-                            String token = response.getString("access_token");
-
+                            String tokens = response.getString("access_token");
+                            token = tokens;
+                            obtenerListaClientes();
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -68,17 +68,61 @@ public class MainActivity2 extends AppCompatActivity {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        // Manejar el error de la solicitud
+
                         error.printStackTrace();
                     }
                 });
 
-        // Agregar la solicitud a la cola de solicitudes de Volley
+
         Volley.newRequestQueue(this).add(request);
 
-        // En el onResponse, cuando obtengas el token, puedes mostrarlo en un TextView, por ejemplo
-        TextView textViewToken = findViewById(R.id.txtLista);
-        textViewToken.setText(token);
+
+        //TextView textViewToken = findViewById(R.id.txtLista);
+        //textViewToken.setText(token);
+    }
+
+    private void obtenerListaClientes() {
+        String clientesURL = "https://api.uealecpeterson.net/public/clientes";
+        JsonObjectRequest clientesRequest = new JsonObjectRequest(Request.Method.GET, clientesURL, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            JSONArray clientesArray = response.getJSONArray("clientes");
+                            ArrayList<String> lstClientes = new ArrayList<String> ();
+
+                            for (int i = 0; i < clientesArray.length(); i++) {
+                                JSONObject cliente = clientesArray.getJSONObject(i);
+
+                                lstClientes.add( cliente.getString("nombre"));
+                                String email = cliente.getString("email");
+                                // ...
+                                TextView txtv = findViewById(R.id.txtLista);
+                                txtv.setText(lstClientes.toString());
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                        error.printStackTrace();
+                    }
+                }) {
+            @Override
+            public Map<String, String> getHeaders() {
+
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + token);
+                return headers;
+            }
+        };
+
+        // Agregar la solicitud de lista de clientes a la cola de solicitudes de Volley
+        Volley.newRequestQueue(this).add(clientesRequest);
     }
 
 }

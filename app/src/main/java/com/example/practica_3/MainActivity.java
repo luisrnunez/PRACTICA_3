@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity implements Asynchtask {
         Bundle b = new Bundle();
 
         b.putString("NOMBRE", txtNombre.getText().toString());
-        b.putString("APELLIDO", txtApelllido.getText().toString());
+        b.putString("CLAVE", txtApelllido.getText().toString());
         intent.putExtras(b);
         startActivity(intent);
 
